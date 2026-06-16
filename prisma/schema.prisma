@@ -129,6 +129,7 @@ model User {
   phone         String?
   address       String?
   emailVerified DateTime?
+  isAdmin       Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   verificationTokens VerificationToken[]

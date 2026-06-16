@@ -79,6 +79,8 @@ export default function CameraTestPage({ params }: { params: { id: string } }) {
   const [axisOS, setAxisOS] = useState(90)
 
   // Collected results
+  const [saving,  setSaving]   = useState(false)
+  const [saved,    setSaved]    = useState(false)
   const [results, setResults] = useState({
     acuityRight:       0,
     acuityLeft:        0,
@@ -100,10 +102,15 @@ export default function CameraTestPage({ params }: { params: { id: string } }) {
       .then(d => setModelCoeffs(d?.coefficients ?? null)).catch(() => {})
   }, [params.id])
 
-  // Reset snellen level on acuity phases
+  // Reset snellen level on acuity phases; auto-save when COMPLETE
   useEffect(() => {
     const p = PHASES[phaseIndex]
     if (p === "E_TEST_OD" || p === "E_TEST_OS") { setSnellenIdx(0); setERot(randRot()) }
+    if (p === "COMPLETE") {
+      // Auto-save immediately — no button press needed
+      submitResults()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phaseIndex])
 
   // ── FaceMesh — stable callback (reads phase from ref) ────────────────
@@ -222,8 +229,10 @@ export default function CameraTestPage({ params }: { params: { id: string } }) {
     setPhaseIndex(p => p + 1)
   }
 
-  // ── Submit ────────────────────────────────────────────────────────────
+  // ── Submit — called automatically when COMPLETE phase is reached ────
   const submitResults = async () => {
+    if (saving || saved) return   // prevent double-save
+    setSaving(true)
     const diagnosisClass = classifyDiagnosis(
       results.sphLeft, results.sphRight, results.cylLeft, results.cylRight
     )
@@ -255,7 +264,8 @@ export default function CameraTestPage({ params }: { params: { id: string } }) {
       }),
     })
     fetch("/api/model/retrain", { method:"POST" }).catch(() => {})
-    router.push("/dashboard")
+    setSaving(false)
+    setSaved(true)
   }
 
   // ── Render values ─────────────────────────────────────────────────────
@@ -704,9 +714,29 @@ export default function CameraTestPage({ params }: { params: { id: string } }) {
               <RCard label="Diagnosis"     value={classifyDiagnosis(results.sphLeft,results.sphRight,results.cylLeft,results.cylRight)} hi />
             </div>
 
-            <button onClick={submitResults} className="btn-primary w-full py-3 text-base">
-              Save Prescription to Dashboard →
-            </button>
+            {saving && (
+              <div className="flex items-center justify-center gap-3 py-4">
+                <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin"/>
+                <p className="text-sm text-muted">Saving prescription to dashboard…</p>
+              </div>
+            )}
+            {saved && (
+              <div className="space-y-3">
+                <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 flex items-center gap-2">
+                  <span className="text-green-600 text-lg">✓</span>
+                  <p className="text-sm font-medium text-green-800">Prescription saved to your dashboard automatically.</p>
+                </div>
+                <button onClick={() => router.push("/dashboard")} className="btn-primary w-full py-3 text-base">
+                  Go to Dashboard →
+                </button>
+              </div>
+            )}
+            {!saving && !saved && (
+              <div className="flex items-center justify-center gap-2 py-2 text-sm text-muted">
+                <div className="w-4 h-4 border-2 border-muted border-t-transparent rounded-full animate-spin"/>
+                Preparing to save…
+              </div>
+            )}
           </div>
         )}
       </div>

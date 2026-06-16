@@ -45,6 +45,11 @@ export default async function Navbar() {
                 )}
               </div>
 
+              {(user as any).isAdmin && (
+                <Link href="/admin" className="text-xs font-bold text-red-600 border border-red-200 bg-red-50 px-3 py-1 rounded-full hover:bg-red-100">
+                  Admin Panel
+                </Link>
+              )}
               <span className="text-muted ml-4">Hi, {user.firstName}</span>
               <LogoutButton />
             </>
