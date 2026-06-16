@@ -1,0 +1,159 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum CataractRisk {
+  NONE
+  HALOS
+  FADING
+  BOTH
+}
+
+enum DiagnosisClass {
+  EMMETROPIA
+  MYOPIA
+  HYPEROPIA
+  ASTIGMATISM
+  MIXED
+}
+
+model Patient {
+  id        String        @id @default(cuid())
+  name      String?
+  age       Int
+  country   String?
+  email     String?
+  createdAt DateTime      @default(now())
+  sessions  TestSession[]
+  @@index([createdAt])
+}
+
+model TestSession {
+  id          String        @id @default(cuid())
+  patientId   String?
+  patient     Patient?      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      SessionStatus @default(IN_PROGRESS)
+  createdAt   DateTime      @default(now())
+  completedAt DateTime?
+
+  // Intake questionnaire
+  age                 Int?
+  country             String?
+  symptomDistanceBlur Boolean?
+  symptomNearBlur     Boolean?
+  symptomHeadache     Boolean?
+  historyGlasses      Boolean?
+  familyHistory       Boolean?
+  screenTime          Float?
+  fatigueScore        Int?
+  cataractRisk        CataractRisk?
+
+  // Screen calibration
+  pxPerMm       Float?
+
+  // Biometrics
+  ipdMm         Float?
+  ipdConfidence Float?
+  avgDistanceCm Float?
+
+  // Visual acuity (decimal: 1.0 = 6/6)
+  acuityLeft  Float?
+  acuityRight Float?
+
+  // Clinical refraction — right eye (OD)
+  sphRight   Float?
+  cylRight   Float?
+  axisRight  Int?
+
+  // Clinical refraction — left eye (OS)
+  sphLeft    Float?
+  cylLeft    Float?
+  axisLeft   Int?
+
+  // Legacy single cylinder (kept for backwards compat)
+  cylinder   Float?
+  readingAdd Float?
+
+  // Additional tests
+  astigmatismScore  Int?
+  contrastScore     Int?
+  colorVisionPass   Boolean?
+  macularDistortion Boolean?
+  duochromeScore    Int?
+
+  diagnosisClass DiagnosisClass?
+  recommendation Json?
+
+  modelVersionId String?
+  modelVersion   ModelVersion? @relation(fields: [modelVersionId], references: [id])
+
+  @@index([patientId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ModelVersion {
+  id        String        @id @default(cuid())
+  version   String        @unique
+  trainedAt DateTime      @default(now())
+  metrics   Json
+  active    Boolean       @default(false)
+  sessions  TestSession[]
+}
+
+enum VerificationTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  email         String    @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  phone         String?
+  address       String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  verificationTokens VerificationToken[]
+  sessions           Session[]
+  testSessions       TestSession[]
+  @@index([createdAt])
+}
+
+model VerificationToken {
+  id         String                @id @default(cuid())
+  userId     String
+  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       VerificationTokenType
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime              @default(now())
+  @@index([userId, type])
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([userId])
+}
