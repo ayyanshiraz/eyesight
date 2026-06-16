@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { loginSchema } from '@/types/auth'
 import { verifyPassword, createSession } from '@/lib/auth'
+import { checkRateLimit } from '@/lib/rateLimit'
 
-// POST /api/auth/login - accepts a username or email plus password.
 export async function POST(req: NextRequest) {
+  // Rate limit: 10 attempts per 15 minutes per IP
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown'
+  if (!checkRateLimit(`login:${ip}`, 10)) {
+    return NextResponse.json(
+      { error: { formError: 'Too many login attempts. Please wait 15 minutes before trying again.' } },
+      { status: 429 }
+    )
+  }
+
   const body = await req.json()
   const parsed = loginSchema.safeParse(body)
-
   if (!parsed.success) {
     return NextResponse.json({ error: { formError: 'Enter your username/email and password' } }, { status: 400 })
   }
@@ -30,6 +38,5 @@ export async function POST(req: NextRequest) {
   }
 
   await createSession(user.id)
-
   return NextResponse.json({ ok: true })
 }

@@ -14,95 +14,80 @@ export default function HomePage() {
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-muted">
             ClearSight is a free, browser-based vision screening you can take
-            with just a webcam. It checks your visual acuity, estimates your
-            refractive error, and screens for color vision, astigmatism,
-            contrast sensitivity, and macular health — then turns the results
-            into a plain-language summary you can bring to an eye doctor.
+            with just a webcam. It measures visual acuity, estimates your refractive
+            error (Sph, Cyl, Axis), and screens for colour vision, astigmatism,
+            and macular health — then emails you the results in clinical format.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <Link href="/test" className="btn-primary">
-              Start your screening
-            </Link>
-            <a href="#how-it-works" className="btn-secondary">
-              How it works
-            </a>
+            <Link href="/test" className="btn-primary">Start your screening</Link>
+            <a href="#how-it-works" className="btn-secondary">How it works</a>
           </div>
         </div>
 
-        <div className="flex justify-center">
-          <svg
-            viewBox="0 0 320 320"
-            className="w-full max-w-xs"
-            role="img"
-            aria-label="Stylized eye chart with a row of tumbling-E letters at decreasing sizes"
-          >
-            <circle cx="160" cy="140" r="120" fill="none" stroke="#D7ECE3" strokeWidth="1" />
-            <circle cx="160" cy="140" r="85" fill="none" stroke="#D7ECE3" strokeWidth="1" />
-            <circle cx="160" cy="140" r="50" fill="#1B7A5E" opacity="0.08" />
-            <circle cx="160" cy="140" r="28" fill="#1B7A5E" />
-            <circle cx="170" cy="130" r="7" fill="#F4F7F5" opacity="0.5" />
-
-            <text x="40" y="290" fontFamily="ui-monospace, monospace" fontSize="44" fill="#16241E">
-              E
-            </text>
-            <text
-              x="108"
-              y="290"
-              fontFamily="ui-monospace, monospace"
-              fontSize="32"
-              fill="#5B6F66"
-              transform="rotate(90 124 274)"
-            >
-              E
-            </text>
-            <text
-              x="172"
-              y="290"
-              fontFamily="ui-monospace, monospace"
-              fontSize="22"
-              fill="#5B6F66"
-              transform="rotate(180 183 281)"
-            >
-              E
-            </text>
-            <text x="226" y="288" fontFamily="ui-monospace, monospace" fontSize="14" fill="#5B6F66">
-              E
-            </text>
-          </svg>
+        {/* Sample prescription card */}
+        <div>
+          <p className="text-xs font-medium uppercase tracking-widest text-muted mb-3 text-center">Sample result</p>
+          <div className="rounded-2xl border-2 border-accent/20 overflow-hidden shadow-sm">
+            <div className="bg-accent text-white px-4 py-2 text-xs font-bold uppercase tracking-wider">
+              ClearSight — Vision Prescription
+            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-accent-light">
+                  {["Eye","Sph","Cyl","Axis","Va"].map(h=>(
+                    <th key={h} className="px-3 py-2 text-center text-muted text-xs font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-t border-accent/10">
+                  <td className="px-3 py-3 text-center"><span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-semibold">Right (OD)</span></td>
+                  <td className="px-3 py-3 text-center font-mono font-semibold text-ink">-3.50</td>
+                  <td className="px-3 py-3 text-center font-mono text-ink">-0.50</td>
+                  <td className="px-3 py-3 text-center font-mono text-ink">5°</td>
+                  <td className="px-3 py-3 text-center font-mono font-semibold text-accent-dark">6/9</td>
+                </tr>
+                <tr className="border-t border-accent/10">
+                  <td className="px-3 py-3 text-center"><span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs font-semibold">Left (OS)</span></td>
+                  <td className="px-3 py-3 text-center font-mono font-semibold text-ink">-2.50</td>
+                  <td className="px-3 py-3 text-center font-mono text-ink">-0.75</td>
+                  <td className="px-3 py-3 text-center font-mono text-ink">160°</td>
+                  <td className="px-3 py-3 text-center font-mono font-semibold text-accent-dark">6/6</td>
+                </tr>
+              </tbody>
+            </table>
+            <div className="bg-accent-light px-4 py-3 flex items-center justify-between">
+              <span className="text-xs text-accent-dark font-medium">Diagnosis</span>
+              <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-bold">MYOPIA + ASTIGMATISM</span>
+            </div>
+          </div>
+          <p className="text-xs text-muted text-center mt-2">Sample output — not a real prescription</p>
         </div>
       </section>
 
       {/* What gets measured */}
       <section className="mt-24">
-        <h2 className="font-display text-2xl font-medium text-ink md:text-3xl">
-          What this screening measures
-        </h2>
+        <h2 className="font-display text-2xl font-medium text-ink md:text-3xl">What this screening measures</h2>
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           <div className="card">
-            <h3 className="font-display text-lg font-medium text-accent-dark">
-              Vision &amp; focus
-            </h3>
+            <h3 className="font-display text-lg font-medium text-accent-dark">Vision &amp; focus</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              A tumbling-E acuity test for each eye, an estimated spherical
-              correction, and a check for astigmatism.
+              Tumbling-E acuity per eye (6/6 to 6/60), spherical correction (Sph),
+              cylinder (Cyl), axis, and a duochrome refractive balance test.
             </p>
           </div>
           <div className="card">
-            <h3 className="font-display text-lg font-medium text-accent-dark">
-              Color &amp; contrast
-            </h3>
+            <h3 className="font-display text-lg font-medium text-accent-dark">Colour &amp; contrast</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              A color vision check, a contrast sensitivity test, and a
-              red/green duochrome balance test.
+              Ishihara colour vision plate and an Amsler grid macular check.
+              Results flag when further clinical assessment is needed.
             </p>
           </div>
           <div className="card">
-            <h3 className="font-display text-lg font-medium text-accent-dark">
-              Biometrics
-            </h3>
+            <h3 className="font-display text-lg font-medium text-accent-dark">Biometrics</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Your pupillary distance and viewing distance, measured with your
-              camera, plus an Amsler grid check for macular distortion.
+              Pupillary distance (IPD) and viewing distance via webcam FaceMesh.
+              Screen calibrated with your ID card for accurate letter sizing.
             </p>
           </div>
         </div>
@@ -110,44 +95,43 @@ export default function HomePage() {
 
       {/* How it works */}
       <section id="how-it-works" className="mt-24">
-        <h2 className="font-display text-2xl font-medium text-ink md:text-3xl">
-          How it works
-        </h2>
-        <ol className="mt-8 space-y-6">
-          <li className="flex gap-4">
-            <span className="font-display text-2xl text-accent">01</span>
-            <p className="text-muted">
-              Answer a few quick questions about your age and any symptoms
-              you&apos;ve noticed, like headaches or blurry distance vision.
-            </p>
-          </li>
-          <li className="flex gap-4">
-            <span className="font-display text-2xl text-accent">02</span>
-            <p className="text-muted">
-              Work through seven short tests using your webcam — no special
-              equipment needed.
-            </p>
-          </li>
-          <li className="flex gap-4">
-            <span className="font-display text-2xl text-accent">03</span>
-            <p className="text-muted">
-              Get a plain-language summary of your results, with a
-              recommendation on whether to book a full eye exam.
-            </p>
-          </li>
-        </ol>
+        <h2 className="font-display text-2xl font-medium text-ink md:text-3xl">How it works</h2>
+        <div className="mt-8 grid gap-6 md:grid-cols-4">
+          {[
+            { n:"01", title:"Calibrate", desc:"Hold your CNIC or debit card to the screen to set the true pixel density." },
+            { n:"02", title:"Questionnaire", desc:"Answer a few questions about your symptoms and eye history." },
+            { n:"03", title:"Take the test", desc:"Nine short tests per eye: acuity, sphere, cylinder, colour, macular." },
+            { n:"04", title:"Get results", desc:"A clinical prescription card, emailed to you instantly, that you can bring to any optometrist." },
+          ].map(s=>(
+            <div key={s.n} className="card">
+              <span className="font-display text-2xl text-accent">{s.n}</span>
+              <h3 className="font-display text-base font-medium text-ink mt-2">{s.title}</h3>
+              <p className="text-sm text-muted mt-1">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Self-improving model callout */}
+      <section className="mt-16 rounded-2xl border border-accent/20 bg-accent-light p-8 flex flex-col md:flex-row items-center gap-6">
+        <div className="text-4xl">🧠</div>
+        <div>
+          <h2 className="font-display text-xl font-medium text-ink">Gets smarter with every test</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            ClearSight runs a self-training regression model on all completed test data.
+            As more patients use the platform, the sphere estimates seed closer to real prescriptions —
+            making the refraction slider easier to use and the results more accurate over time.
+          </p>
+        </div>
       </section>
 
       {/* Disclaimer */}
-      <section className="mt-24 rounded-2xl border border-warm/40 bg-warm/10 p-6">
-        <h2 className="font-display text-lg font-medium text-ink">
-          This is a screening, not a diagnosis
-        </h2>
+      <section className="mt-12 rounded-2xl border border-warm/40 bg-warm/10 p-6">
+        <h2 className="font-display text-lg font-medium text-ink">This is a screening, not a diagnosis</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">
-          ClearSight is designed to help you understand your vision and decide
-          whether to see a professional — it does not replace a comprehensive
-          eye exam. Results are not a prescription, and an optometrist or
-          ophthalmologist should confirm any findings before you act on them.
+          ClearSight is designed to help you understand your vision and decide whether to see a professional —
+          it does not replace a comprehensive eye exam. Results are not a prescription and should be confirmed
+          by an optometrist or ophthalmologist before you act on them.
         </p>
       </section>
     </main>

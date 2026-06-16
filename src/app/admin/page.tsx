@@ -66,6 +66,19 @@ export default async function AdminDashboard({
         <p className="text-gray-500 text-sm mt-1">Overview of all platform activity</p>
       </div>
 
+      {/* Quick actions */}
+      <div className="flex gap-3 mb-6 flex-wrap">
+        <form action="/api/admin/cleanup" method="POST">
+          <button type="submit"
+            className="px-4 py-2 rounded-xl bg-yellow-500 text-white text-sm font-medium hover:bg-yellow-600 transition-colors">
+            🧹 Mark abandoned sessions (7d+)
+          </button>
+        </form>
+        <a href="/admin/users" className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:border-accent hover:text-accent transition-colors">
+          Manage users →
+        </a>
+      </div>
+
       {/* Date filter */}
       <form method="GET" className="flex flex-wrap items-center gap-3 mb-8 bg-white border border-gray-200 rounded-2xl p-4">
         <span className="text-sm font-medium text-gray-600">Filter by date:</span>

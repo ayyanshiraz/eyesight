@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { intakeSchema, resultsSchema } from '@/types/test-session'
-import { classifyDiagnosis, readingAddForAge } from '@/lib/optics'
+import { classifyDiagnosis, readingAddForAge, vaLabel, SNELLEN_DENOMINATORS } from '@/lib/optics'
 import { retrainModel } from '@/lib/model'
+import { sendResultsEmail } from '@/lib/email'
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser()
@@ -25,6 +26,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json({ success: true, sessionId: params.id })
 }
 
+// Helper: convert decimal acuity to Va label
+function acuityToVa(decimal: number | null | undefined): string {
+  if (!decimal) return '—'
+  const idx = Math.max(0, SNELLEN_DENOMINATORS.length - Math.round(decimal * SNELLEN_DENOMINATORS.length) - 1)
+  return vaLabel(SNELLEN_DENOMINATORS[idx])
+}
+
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -36,10 +44,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
   const d = parsed.data
-  const sphLeft  = d.sphLeft  ?? 0
-  const sphRight = d.sphRight ?? 0
-  const cylLeft  = d.cylLeft  ?? 0
-  const cylRight = d.cylRight ?? 0
+  const sphLeft    = d.sphLeft   ?? 0
+  const sphRight   = d.sphRight  ?? 0
+  const cylLeft    = d.cylLeft   ?? 0
+  const cylRight   = d.cylRight  ?? 0
+  const axisRight  = d.axisRight ?? 90
+  const axisLeft   = d.axisLeft  ?? 90
   const diagnosisClass = classifyDiagnosis(sphLeft, sphRight, cylLeft, cylRight)
   const readingAdd     = existing.age ? readingAddForAge(existing.age) : 0
 
@@ -48,11 +58,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     data: {
       status: 'COMPLETED', completedAt: new Date(),
       ipdMm: d.ipdMm, ipdConfidence: d.ipdConfidence,
-      avgDistanceCm: d.avgDistanceCm,
-      pxPerMm: d.pxPerMm,
+      avgDistanceCm: d.avgDistanceCm, pxPerMm: d.pxPerMm,
       acuityLeft: d.acuityLeft, acuityRight: d.acuityRight,
       sphLeft, sphRight, cylLeft, cylRight,
-      axisLeft: d.axisLeft, axisRight: d.axisRight,
+      axisLeft, axisRight,
       cylinder: d.cylinder,
       readingAdd,
       astigmatismScore: d.astigmatismScore,
@@ -64,7 +73,25 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     },
   })
 
+  // Fire-and-forget: retrain model
   retrainModel().catch(() => {})
+
+  // Fire-and-forget: send results email
+  const rec = d.recommendation as any
+  const recText = typeof rec === 'string' ? rec : rec?.text ?? ''
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://clearsight.vercel.app'
+  sendResultsEmail({
+    firstName:  user.firstName,
+    email:      user.email,
+    diagnosis:  diagnosisClass,
+    right: { sph: sphRight, cyl: cylRight, axis: axisRight, va: acuityToVa(d.acuityRight) },
+    left:  { sph: sphLeft,  cyl: cylLeft,  axis: axisLeft,  va: acuityToVa(d.acuityLeft) },
+    recommendation: recText,
+    readingAdd,
+    sessionId: params.id,
+    appUrl,
+  }).catch(err => console.error('Failed to send results email:', err))
+
   return NextResponse.json({ success: true })
 }
 
